@@ -1,0 +1,1020 @@
+---
+title: "Proseminar Arbeit"
+author: "Lino Moser"
+date: "2023-01-06"
+output:
+  html_document:
+    theme: yeti
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, error = FALSE, warning = FALSE, results='hide')
+knitr::opts_knit$set(root.dir = '/Users/lino/Google Drive/Uni/PSYCHOLOGIE/proseminare/u_data/Meine Darstellung/Project_Erwerbsmodelle')
+```
+
+
+```{r dataloading}
+library(tinytex)
+library(plyr)
+library(dplyr)
+library(readxl)
+library(tidyr)
+library(ggthemes)
+library(extrafont)
+
+#First Step: Daten aus dem Excel- Files des Bundesamtes für Statistik laden.
+#Als erstes lese ich die neuen Datensätze ein.
+#Da die Excel-Files ziemlich messy sind, gebe ich die einzulesenden Columns mit range an.
+
+em_n_2021 <- read_excel("Tables/Erwerbsmodell_bei_Paaren.xlsx", 
+                                       sheet = "2021", 
+                        col_names = TRUE,
+                        skip = 2,
+                        range = "A3:N33")
+                        
+em_n_2020 <- read_excel("Tables/Erwerbsmodell_bei_Paaren.xlsx", 
+                        sheet = "2020", 
+                        col_names = TRUE,
+                        skip = 2,
+                        range = "A3:N33")
+
+em_n_2019 <- read_excel("Tables/Erwerbsmodell_bei_Paaren.xlsx", 
+                        sheet = "2019", 
+                        col_names = TRUE,
+                        skip = 2,
+                        range = "A3:N33")
+
+em_n_2018 <- read_excel("Tables/Erwerbsmodell_bei_Paaren.xlsx", 
+                        sheet = "2018", 
+                        col_names = TRUE,
+                        skip = 2,
+                        range = "A3:N33")
+
+em_n_2017 <- read_excel("Tables/Erwerbsmodell_bei_Paaren.xlsx", 
+                        sheet = "2017", 
+                        col_names = TRUE,
+                        skip = 2,
+                        range = "A3:N33")
+
+em_n_2016 <- read_excel("Tables/Erwerbsmodell_bei_Paaren.xlsx", 
+                        sheet = "2016", 
+                        col_names = TRUE,
+                        skip = 2,
+                        range = "A3:N33")
+
+# Das Jahr 2015 Ist in der Excel-Datei nicht enthalten.
+
+em_n_2014 <- read_excel("Tables/Erwerbsmodell_bei_Paaren.xlsx", 
+                        sheet = "2014", 
+                        col_names = TRUE,
+                        skip = 2,
+                        range = "A3:N33")
+
+em_n_2013 <- read_excel("Tables/Erwerbsmodell_bei_Paaren.xlsx", 
+                        sheet = "2013", 
+                        col_names = TRUE,
+                        skip = 2,
+                        range = "A3:N33")
+
+em_n_2012 <- read_excel("Tables/Erwerbsmodell_bei_Paaren.xlsx", 
+                        sheet = "2012", 
+                        col_names = TRUE,
+                        skip = 2,
+                        range = "A3:N33")
+
+em_n_2011 <- read_excel("Tables/Erwerbsmodell_bei_Paaren.xlsx", 
+                        sheet = "2011", 
+                        col_names = TRUE,
+                        skip = 2,
+                        range = "A3:N33")
+
+em_n_2010 <- read_excel("Tables/Erwerbsmodell_bei_Paaren.xlsx", 
+                        sheet = "2010", 
+                        col_names = TRUE,
+                        skip = 2,
+                        range = "A3:N33")
+
+# Jahreszahlen zu den jeweiligen Datensätzen hinzufügen (each year 30 observations) etwas umständlich, nächstes mal direkt über den zusammengefügten Datensatz.
+
+em_n_2021 <- mutate(em_n_2021, Jahr = 2021 )
+em_n_2020 <- mutate(em_n_2020, Jahr = 2020 )
+em_n_2019 <- mutate(em_n_2019, Jahr = 2019 )
+em_n_2018 <- mutate(em_n_2018, Jahr = 2018 )
+em_n_2017 <- mutate(em_n_2017, Jahr = 2017 )
+em_n_2016 <- mutate(em_n_2016, Jahr = 2016 )
+em_n_2014 <- mutate(em_n_2014, Jahr = 2014 )
+em_n_2013 <- mutate(em_n_2013, Jahr = 2013 )
+em_n_2012 <- mutate(em_n_2012, Jahr = 2012 )
+em_n_2011 <- mutate(em_n_2011, Jahr = 2011 )
+em_n_2010 <- mutate(em_n_2010, Jahr = 2010 )
+
+#Datensätze zusammenfügen
+
+em_n <- rbind(em_n_2010,
+              em_n_2011,
+              em_n_2012,
+              em_n_2013,
+              em_n_2014,
+              em_n_2016,
+              em_n_2017,
+              em_n_2017,
+              em_n_2018,
+              em_n_2018,
+              em_n_2019,
+              em_n_2020,
+              em_n_2021 )
+
+#Und die Variable, die das Subset der Untersuchten Personen angibt (zB. Paare Gesammt, Paare mit jüngstem Kind 0-3 Jahre, etc.) zu Gruppe umbenennen.
+
+colnames(em_n)[colnames(em_n) == '...1'] <- 'Gruppe'
+colnames(em_n)
+
+#variablen zu Factor und numeric konvertieren 
+as.factor(em_n$`Partner Vollzeit / Partnerin nicht erwerbstätig`)
+class(em_n$`Partner Vollzeit / Partnerin nicht erwerbstätig`)
+em_n$`Partner Vollzeit / Partnerin nicht erwerbstätig` <- as.numeric(em_n$`Partner Vollzeit / Partnerin nicht erwerbstätig`)
+
+
+colnames(em_n)
+
+
+
+##Nun wird der alte Datensatz geladen (Gleiche methode wie bei dem neuen Datensatz).
+
+
+em_a_1992 <- read_excel("Tables/Erwerbsmodelle Alt.xls", 
+                        sheet = "1992", 
+                        col_names = TRUE,
+                        range = cell_rows(c(5,10,12:18)) )
+
+em_a_1995 <- read_excel("Tables/Erwerbsmodelle Alt.xls", 
+                        sheet = "1995", 
+                        col_names = TRUE,
+                        range = cell_rows(c(5,10,12:18)) )
+
+em_a_1997 <- read_excel("Tables/Erwerbsmodelle Alt.xls", 
+                        sheet = "1997", 
+                        col_names = TRUE,
+                        range = cell_rows(c(5,10,12:18)) )
+
+em_a_2000 <- read_excel("Tables/Erwerbsmodelle Alt.xls", 
+                        sheet = "2000", 
+                        col_names = TRUE,
+                        range = cell_rows(c(5,10,12:18)) )
+
+em_a_2004 <- read_excel("Tables/Erwerbsmodelle Alt.xls", 
+                        sheet = "2004", 
+                        col_names = TRUE,
+                        range = cell_rows(c(5,10,12:18)) )
+
+em_a_2007 <- read_excel("Tables/Erwerbsmodelle Alt.xls", 
+                        sheet = "2007", 
+                        col_names = TRUE,
+                        range = cell_rows(c(5,10,12:18)) )
+
+em_a_2010 <- read_excel("Tables/Erwerbsmodelle Alt.xls", 
+                        sheet = "2010", 
+                        col_names = TRUE,
+                        range = cell_rows(c(5,10,12:18)) )
+
+em_a_2011 <- read_excel("Tables/Erwerbsmodelle Alt.xls", 
+                        sheet = "2011", 
+                        col_names = TRUE,
+                        range = cell_rows(c(5,10,12:18)) )
+
+em_a_2012 <- read_excel("Tables/Erwerbsmodelle Alt.xls", 
+                        sheet = "2012", 
+                        col_names = TRUE,
+                        range = cell_rows(c(5,10,12:18)) )
+
+em_a_2013 <- read_excel("Tables/Erwerbsmodelle Alt.xls", 
+                        sheet = "2013", 
+                        col_names = TRUE,
+                        range = cell_rows(c(5,10,12:18)) )
+
+em_a_2014 <- read_excel("Tables/Erwerbsmodelle Alt.xls", 
+                        sheet = "2014", 
+                        col_names = TRUE,
+                        range = cell_rows(c(5,10,12:18)) )
+
+#Da die Files auch nach dem Einlesen noch messy sind, werden sie mit slice in ordnung gebracht.
+
+em_a_1992 <- em_a_1992 %>% slice(c(5, 7:13)) 
+
+em_a_1995 <- em_a_1995 %>% slice(c(5, 7:13))
+
+em_a_1997 <- em_a_1997 %>% slice(c(5, 7:13))
+
+em_a_2000 <- em_a_2000 %>% slice(c(5, 7:13))
+
+em_a_2004 <- em_a_2004 %>% slice(c(5, 7:13))
+
+em_a_2007 <- em_a_2007 %>% slice(c(5, 7:13))
+
+em_a_2010 <- em_a_2010 %>% slice(c(5, 7:13))
+
+em_a_2011 <- em_a_2011 %>% slice(c(5, 7:13))
+
+em_a_2012 <- em_a_2012 %>% slice(c(5, 7:13))
+
+em_a_2013 <- em_a_2013 %>% slice(c(5, 7:13))
+
+em_a_2014 <- em_a_2014 %>% slice(c(5, 7:13))
+
+
+
+## Umbenennden wie im neuen Datensatz alle Gruppenvariablen umbenennen.
+#Next time einfacher mit mutate() ;)
+
+
+colnames(em_a_1992)[1] = "Gruppe"
+colnames(em_a_1995)[1] = "Gruppe"
+colnames(em_a_1997)[1] = "Gruppe"
+colnames(em_a_2000)[1] = "Gruppe"
+colnames(em_a_2004)[1] = "Gruppe"
+colnames(em_a_2007)[1] = "Gruppe"
+colnames(em_a_2010)[1] = "Gruppe"
+colnames(em_a_2011)[1] = "Gruppe"
+colnames(em_a_2012)[1] = "Gruppe"
+colnames(em_a_2013)[1] = "Gruppe"
+colnames(em_a_2014)[1] = "Gruppe"
+
+
+##Namen von Variablen mit gleichem Inhalt aber anderem Namen angleichen, damit das Zusammenfügen mit rbind möglich wird.
+
+colnames(em_a_2013)[7] = "Partner nicht oder Teilzeit (1-89%) / Partnerin Vollzeit erwerbstätig"
+colnames(em_a_2014)[7] = "Partner nicht oder Teilzeit (1-89%) / Partnerin Vollzeit erwerbstätig"
+
+##alte Datensätze zusammenfügen.
+
+em_a_all_combined <- rbind.fill(em_a_1992,
+           em_a_1995,
+           em_a_1997,
+           em_a_2000,
+           em_a_2004,
+           em_a_2007,
+           em_a_2010,
+           em_a_2011,
+           em_a_2012,
+           em_a_2013,
+           em_a_2014)
+
+
+glimpse(em_a_all_combined)
+
+##Jahreszahlen hinzufügen (jetzt etwas besser als vorher, direkt mit einem Vektor :D)
+
+Jahre_alt <- c("1992", 
+               "1995",
+               "1997",
+               "2000",
+               "2004",
+               "2007",
+               "2010",
+               "2011",
+               "2012",
+               "2013",
+               "2014")
+
+em_a_all_combined$Jahr <- c(rep(Jahre_alt, each = 8)) 
+
+glimpse(em_a_all_combined)
+
+## Überblick verschaffen.
+
+glimpse(em_n)
+glimpse(em_a_all_combined)
+
+colnames(em_n)
+colnames(em_a_all_combined)
+
+##missing data hinzufügen (Für Daten, die nur in jeweils einem Datensatz (alt/neu) vorhanden sind und deshalb im jeweils anderen NAn sein müssen)
+
+em_n_wmd <- em_n %>% mutate(,"Andere Modelle" = NA, "Partner Vollzeit / Partnerin Teilzeit 1-89% 2)" = NA )
+em_a_wmd <- em_a_all_combined %>% mutate(, "Partner erwerbslos / Partnerin erwerbstätig"  = NA) 
+
+## Nur cols verwenden, die für die Analyse verwendet werden und cols neu anordnen und umbenennen um den alten und den neuen Datensatz zusammenfügen zu können.
+
+em_n_analysis_n <- em_n_wmd %>% select( c(1, 3:8,15, 16, 17))
+
+em_a_analysis_n <- em_a_wmd %>% select( c(1:6, 9, 10, 11 ))
+
+colnames(em_n_analysis_n)
+colnames(em_a_analysis_n)
+
+em_a_analysis_n <- em_a_analysis_n[, c(1,9,2,7,8,4,5,3,6)]
+colnames(em_n_analysis_n)
+colnames(em_a_analysis_n)
+
+em_n_analysis_n <- em_n_analysis_n[, c(1,8,2,3,4,5,6,10,7)]
+colnames(em_n_analysis_n)
+
+##Namen der Cols mit gleichem Inhalt anpassen, damit sie in beiden Datesaets gleich sind (für rbind)
+
+names(em_a_analysis_n)[1] <- "Gruppe"
+names(em_n_analysis_n)[1] <- "Gruppe"
+names(em_a_analysis_n)[2] <- "Jahr"
+names(em_n_analysis_n)[2] <- "Jahr"
+names(em_a_analysis_n)[3] <- "Partner Vollzeit / Partnerin nicht erwerbstätig"
+names(em_n_analysis_n)[3] <- "Partner Vollzeit / Partnerin nicht erwerbstätig"
+names(em_a_analysis_n)[4] <- "Partner Vollzeit / Partnerin Teilzeit 1-49%" 
+names(em_n_analysis_n)[4] <- "Partner Vollzeit / Partnerin Teilzeit 1-49%" 
+names(em_a_analysis_n)[5] <- "Partner Vollzeit / Partnerin Teilzeit 50-89%"
+names(em_n_analysis_n)[5] <- "Partner Vollzeit / Partnerin Teilzeit 50-89%"
+names(em_a_analysis_n)[6] <- "Beide Vollzeit"
+names(em_n_analysis_n)[6] <- "Beide Vollzeit"
+names(em_a_analysis_n)[7] <- "Beide Teilzeit"
+names(em_n_analysis_n)[7] <- "Beide Teilzeit"
+names(em_a_analysis_n)[8] <- "Partner Vollzeit / Partnerin Teilzeit 1-89%"
+names(em_n_analysis_n)[8] <- "Partner Vollzeit / Partnerin Teilzeit 1-89%"
+names(em_a_analysis_n)[9] <- "Partner nicht oder Teilzeit (1-89%) erwerbstätig / Partnerin Vollzeit"
+names(em_n_analysis_n)[9] <- "Partner nicht oder Teilzeit (1-89%) erwerbstätig / Partnerin Vollzeit"
+
+
+## Zusammenfügen des alten und des neuen Datensatzes
+
+em_analysis <- rbind(em_a_analysis_n, em_n_analysis_n)
+
+##Namen der Variable Paare insgesammt in Column "Gruppe" anpassen
+
+em_analysis[em_analysis == "Paare insgesamt 1"] <- "Paare insgesamt"
+
+## overview
+
+glimpse(em_analysis)
+
+# Datensatz mit den Addierten Variablen für 
+# 1. Partner arbeitet mehr als Partnerin, 2. Partnerin arbeitet mehr als Partner, 3. #Beide arbeiten Voll- oder Teilzeit
+
+#neuen Datensatz erstellen und alle NAs zu 0 konvertieren (für Operationen bei zusammengefügtem Datensatz praktisch.. NULL wäre auch möglich gewesen)
+
+em_analysis_na0 <- em_analysis
+em_analysis_na0[is.na(em_analysis_na0)] <- 0 
+
+# X bedeuet, dass weniger als 5 Paare untersucht wurden. Diese Daten sind #vernachlässigbar, da fehlerbehaftet, deshalb beziehe ich sie in meine Analyse nicht mit ein und konvertiere sie auch zu 0
+
+em_analysis_na0[em_analysis_na0 == "X"] <- 0
+
+#Class der Variablen anpassen:
+
+sapply(em_analysis_na0, class) # 1. Class anzeigen lassen.
+#2. konvertieren
+em_analysis_na0$`Beide Teilzeit` <- as.numeric(em_analysis_na0$`Beide Teilzeit`)
+em_analysis_na0$`Partner nicht oder Teilzeit (1-89%) erwerbstätig / Partnerin Vollzeit` <- as.numeric(em_analysis_na0$`Partner nicht oder Teilzeit (1-89%) erwerbstätig / Partnerin Vollzeit`)
+em_analysis_na0$`Gruppe` <- as.factor(em_analysis_na0$`Gruppe`)
+em_analysis_na0$`Jahr` <- as.factor(em_analysis_na0$`Jahr`)
+
+
+
+##Daten für "grobe" Analyse vorbereiten:
+
+
+## 1. Familien in denen der Partner mehr Erwerbsprozente hat als die Partnerin
+em_analysis_overview1 <- em_analysis_na0 %>% mutate(, `Partner Vollzeit / Partnerin Teilzeit 1-89% addiert` = `Partner Vollzeit / Partnerin Teilzeit 1-49%` +
+                                                      `Partner Vollzeit / Partnerin Teilzeit 50-89%`) ##die neueren Daten werden summiert. Für den älteren Datensatz ergibt sich 0 + 0 = 0
+
+#Nun können die Daten zusammengezählt werden: 
+#`Partner Vollzeit / Partnerin Teilzeit 1-89% addiert`: Daten im neuen Datensatz, 0 im alten Datensatz
+#`Partner Vollzeit / Partnerin Teilzeit 1-89%`: Daten im alten Datensatz, 0 im neuen Datensatz
+#`Partner Vollzeit / Partnerin nicht erwerbstätig`): Daten in beiden Datensätzen
+
+em_analysis_overview <- em_analysis_overview1 %>% mutate(, `Partner Vollzeit, Partnerin nicht oder Teilzeit` = `Partner Vollzeit / Partnerin Teilzeit 1-89% addiert` + ##Sumierte Daten mit Mutate hinzufügen
+                                                           `Partner Vollzeit / Partnerin Teilzeit 1-89%` + ##Daten aus dem alten Datensatz (Wird als 0 Angezeigt und kann deshalb auch zu neuen Daten addiert werden)
+                                                           `Partner Vollzeit / Partnerin nicht erwerbstätig`) 
+
+
+## 2. Familien in denen die Partnerin mehr Erwerbsprozente hat als der Partner:
+
+em_analysis_overview <- em_analysis_overview %>% mutate(,`Partnerin Vollzeit, Partner nicht oder Teilzeit` = `Partner nicht oder Teilzeit (1-89%) erwerbstätig / Partnerin Vollzeit`)
+
+## 3. Familien in denen beide voll oder Teilzeit arbeiten
+
+em_analysis_overview <- em_analysis_overview %>% mutate(, `beide Voll oder Teilzeit` = `Beide Vollzeit` + `Beide Teilzeit`)
+
+
+#Vorbereitung um den Datensatz von Wide zu long zu konvertieren:
+#Da einige Daten aus dem alten und einige aus dem neuen Datensatz das gleiche Jahr haben und sich deshalb teilweise überschneiden (Für den Zeitraum 2010- 2014), werden alle Daten mit einem Marker für die alte und die neue Messung versehen (nach "2010-2014 alt" und "2012-2014 neu"). in gglpot werde ich für die Analyse die neuen Daten von 2010 bis 2014 verwenden. 
+#Zudem gebe ich einen Marker für alte und neue Daten an, damit ich später eventuell mit facet.grid() herumspielen kann. 
+
+#kleine Rechungung zur Vorbereitung:
+nrow(em_analysis_overview) #478 rows
+88 - 48 #Anzahl alte Werte aus dem alten Datensatz aus dem Zeitraum 2010-2014 == 40
+478 - 88 #390 
+
+
+
+# 1. die überlappenden Zeiträume 2010-2014 nach altem und neuem Datensatz hinzufügen
+em_analysis_overview$Datensatz_überlappend <- as.character(c(rep("2012-2014 neu", times = 48),
+                                                 rep("2010-2014 alt", times = 40),
+                                                 rep("2012-2014 neu", times = 390)))
+
+
+# 2. Alle Daten markieren nach neuem und altem Datensatz
+em_analysis_overview$Datensatz_alt_neu <-as.character(c(rep("alter Datensatz", times = 88),
+                                                        rep("neuer Datensatz", times = 390))) 
+
+# 3. Pivot longer Datensatz erstellen, der für die Analyse verwendet wird.
+
+em_analysis_overview_long <- em_analysis_overview %>% 
+  pivot_longer(!c("Datensatz_alt_neu",
+                  "Datensatz_überlappend",
+                  "Jahr",
+                  "Gruppe"),
+                  names_to = "Erwerbsmodell", 
+                  values_to = "Prozentanteil")
+em_analysis_overview_long$Prozentanteil <- as.numeric(em_analysis_overview_long$Prozentanteil)
+em_analysis_overview_long$Jahr <- as.factor(em_analysis_overview_long$Jahr)
+
+#ready :)
+
+#Für die Textfarbe und die Links wurde HTML code verwendet.
+```
+
+
+## <font size= "6"> __Veränderung der Erwerbsmodelle in Schweizer Familien__ </font>
+
+Die Arbeitsaufteilung in Schweizer Familien ist seit längerem ein politisches und gesellschaftliches Diskusionsthema.
+Das Bundesamt für Statsitik stellt auf seiner Website Daten zu den Erwerbsmodellen von schweizer Familien zur Verfügung, die im Zuge der Schweizer Arbeitskräfterhebung seit dem Jahr 1992 erhoben werden ([Datensatz 1](https://www.bfs.admin.ch/asset/de/22784588), [Datensatz 2](https://www.bfs.admin.ch/asset/de/325794)).
+
+Anhand von diesen Daten möchte ich folgende Frage beantworten:
+
+Veränderte sich die Verteilung der Erwerbsmodelle in Schweizer Familien auf eine bedeutungsvolle Weise seit 1992?
+Ich gehe dabei von einer generellen Entwicklung hin zu von mehr Teil- und Vollzeit- Arbeit der Partnerin und weniger Vollzeit Arbeit des Partners aus.
+
+
+In untenstehender Grafik ist die grobe Veränderung in den Erwerbsmodellen in drei Gruppen dargestellt:
+<ol>
+<li> <p1 style= "color:#50e991"> _Erwerbsmodelle zusammengefasst, in denen Partnerin und Partner beide Vollzeit oder Teilzeit arbeiten_ </p1> </li>
+<li> <p1 style= "color:#0bb4ff"> _Alle Modelle zusammengefasst, in denen der Partner Vollzeit arbeitet und die Partnerin weniger oder gar nicht arbeitet_ </p1> </li>
+<li> <p1 style= "color:#dc0ab4"> _Alle Erwerbsmodelle zusammengefasst, in denen die Partnerin Vollzeit und der Partner weniger oder gar nicht arbeitet_</p1> </li>
+</ol>
+
+<p></p>
+
+### Arbeitsaufteilung in Schweizer Familien: 
+
+```{r Graph1, fig.width=10, fig.height=5}
+
+#Im ersten Plot soll ein Überblick über die grobe Entwicklung in den Erwerbsmodellen gegeben werden. 
+#Die genaueren Modelle weiter unten zeigen zB. nicht ob Familien in denen der Partner Vollzeit und die Partnerin Teilzeit arbeiten
+#generell zu- oder abnahmen. Deshalb ist eine grobe Ansicht am Anfang praktisch.
+
+library(scales) #für die Farben im Plot
+library(ggplot2)
+
+#Die Farben sollten intuitiv mit den Oberkategorien verbunden werden.
+#Ich gehe davon aus, dass blau mit den Modellen assoziiert wird, in denen der Mann mehr arbeitet, 
+#Grün als neutral wahrgenommen wird (dh. beide Teil oder Vollzeit)
+#und Violett mit den Modellen in Verbindung gebracht wird in denen die Partnerin mehr arbeitet.
+#Die Farben sollten nicht zu stechend und angenehm zu lesen sein, deshalb verwende ich Farben aus einer
+#custom Palette, die etwas mildere Farben hat.
+
+dutch_field <- c("#e60049", "#0bb4ff", "#50e991", "#e6d800", "#9b19f5", "#ffa300", "#dc0ab4", "#b3d4ff", "#00bfa0") 
+dutch_field_3 <- dutch_field[c(3,2,7)]
+
+#Plot:
+#Ich filtere zuerst nach den drei zusammengefügten Erwerbsmodellen (Partner arbeitet mehr, Beide Teil- Vollzeit etc.)
+#Die Gruppe ist für diese Analyse immer "Paare insgesammt", da ich die allgemeine Entwicklung aufzeigen will
+
+filter(em_analysis_overview_long,
+       `Gruppe` =="Paare insgesamt",
+       Datensatz_überlappend == "2012-2014 neu",
+       Erwerbsmodell %in% c("Partner Vollzeit, Partnerin nicht oder Teilzeit",
+                            "Partnerin Vollzeit, Partner nicht oder Teilzeit",
+                            "beide Voll oder Teilzeit")) %>%
+  ggplot(aes(x = `Jahr`, y = Prozentanteil, color = Erwerbsmodell, group = Erwerbsmodell)) +
+  geom_line(size = 1.5, alpha = 0.7 ) + #Die Linie wurde etwas dicker gemacht, um klar lesbar zu sein aber immer noch genug Informationen zu enthalten.
+  ylim(0,100) + #Achse anpassen, mehr oder weniger obligatorisch :)
+  labs(title = NULL, #Der Titel wird bereits im HTML File angegeben.
+         subtitle = NULL) + 
+    theme_minimal() + #Der Plot sollte möglichst einfach zu lesen sein und kein Schnikschnak enthalten. In diesem theme sind aber immer noch die Grid-lines drin. Für das grobe interpretieren passen diese gut.
+  theme(
+    plot.title = element_text(size=22, 
+                              hjust = -0.1), ##(Title wurde vorher entfernt, da er bereits in der Überschrift vorhanden ist, egtl. unnötige code Zeile)
+    axis.title.x = element_blank(), #Jahrzahlen sind selbsterklärend dh. kein x-Achsen Titel
+    legend.position = c(.95, .95), #Die legende wird im Plot plaziert, damit das Erscheinungsbild sauberer ist. Die Grösse der legende wird für bessere Lesbarkeit angepasst.
+    legend.justification = c("right", "top"),
+    legend.box.just = "right",
+    legend.margin = margin(6, 6, 6, 6),
+    legend.title = element_text(size=12),
+    legend.text = element_text(size= 10),
+    legend.key.height= unit(0.6, 'cm'),
+    legend.key.width= unit(0.6, 'cm')
+    )+
+  scale_colour_manual(name = "Aufteilung der Arbeit",
+                      labels = c("Partnerin und Partner arbeiten beide voll oder Teilzeit",
+                                 "Partner Vollzeit, Partnerin nicht oder Teilzeit",
+                                 "Partnerin Vollzeit, Partner nicht oder Teilzeit"),
+                      values= dutch_field_3) #Farben aus selber kreierter Palette werden zugewiesen. 
+
+ 
+```
+
+<p></p>
+
+<font size="-1"> Aus dieser Darstellung wird ersichtlich, dass sich mindestens seit 1992 eine konstante Veränderung in den Erwerbsmodellen zeigt. Erwerbsmodelle in denen der Partner Vollzeit arbeitet und die Partnerin nicht oder Teilzeit arbeitet nehmen insgesamt ab. Die Modelle mit gemeinsamer Vollzeit oder Teilzeit Arbeit nehmen insgesamt zu.
+Die Erwerbsmodelle in denen die Partnerin mehr arbeitet als der Partner nehmen nur ganz leicht zu (etwa um 2% seit 1992).<font>
+
+<font size="3"> <font>
+
+***
+
+Um die drei Kategorien aus der Grafik oben noch etwas genauer zu betrachten, sind sie in den Grafiken unten aufgegliedert.
+Die Farben der Reiter geben an, welche Kategorie aufgegliedert wurde (unter dem blauen Reiter ist zB. eine Grafik mit den Modellen, aus denen die blaue Linie im oberen Graph zusammengesetzt ist. Wenn man die Werte für jedes Jahr zusammenrechnen würde, erhielte man die blaue Linie aus der ersten Grafik).
+Unter den Grafiken ist jeweils ein kleiner Text, der die Grafik erklärt.
+
+```{r Graph2-4_edditing}
+
+#Für die genauere Analyse erstelle ich drei Tibbles die nur die für den Plot interessierenden Daten enthalten. 
+#Die Variable Obergruppe habe ich hinzugefügt, weil ich für mich ein wenig mit facet.grid() herumspielen möchte.Für das Hinzufügen der Kolumne verwende ich das Package "tibble"
+library(tibble)
+
+levels(em_analysis_overview_long$Erwerbsmodell)
+
+partner_mehr <- em_analysis_overview_long %>% filter(,Erwerbsmodell %in% c("Partner Vollzeit / Partnerin nicht erwerbstätig",
+                                                                           "Partner Vollzeit / Partnerin Teilzeit 1-49%" ,
+                                                                           "Partner Vollzeit / Partnerin Teilzeit 50-89%")) %>% 
+  add_column(Obergruppe = "partner_mehr" ) #Modelle mit Partner Vollzeit
+
+partnerin_mehr <- em_analysis_overview_long %>% filter(,Erwerbsmodell %in%  "Partner nicht oder Teilzeit (1-89%) erwerbstätig / Partnerin Vollzeit") %>% 
+  add_column(Obergruppe = "partnerin_mehr" ) #Modelle mit Partnerin Vollzeit
+
+teil_voll <- em_analysis_overview_long %>% filter(,Erwerbsmodell %in% c("Beide Vollzeit", "Beide Teilzeit")) %>%
+  add_column(Obergruppe = "teil_voll") #Modelle mit beide Voll/Teillzeit
+
+#Der unten erstellte Long_2 Datensatz wird nicht weiter Verwendet, kann aber nützlich sein, wenn man nach den Obergruppen der Erwerbsmodelle Gruppieren möchte.
+em_analysis_overview_long_2 <- rbind(partner_mehr, partnerin_mehr, teil_voll)
+
+```
+
+
+### Aufgliederung der drei Kategorien: {.tabset} 
+
+#### <p1 style= "color:#50e991">Beide Teilzeit/Vollzeit</p1>
+
+
+```{r Graph2, fig.width=10, fig.height=4.5}
+
+#Als erstes erstelle ich den Plot für die Erwerbsmodelle, in denen Partner oder Partnerin Voll oder Teilzeit arbeiten. 
+#Die Überschrift hat die Farbe der entsprechenden Legende im Übersichtsplot oben ("#50e991"), damit man besser erkennt, welche Gruppe genauer untersucht wird.
+
+
+Plot_vt <- teil_voll %>% filter(Gruppe == "Paare insgesamt",
+                                Prozentanteil != 0,
+                                Datensatz_überlappend != "2010-2014 alt") %>% 
+  ggplot(aes(x = Jahr, y = Prozentanteil, group = Erwerbsmodell, color = Erwerbsmodell)) +
+  ylim(0,100) +
+    labs( title = "Die Verteilung der Erwerbsmodelle in denen Partner und Partnerin beide Teilzeit oder Vollzeit arbeiten",
+          caption = "*Es kann keine Aussage darüber gemacht werden, ob die Teilzeit Arbeit gleich aufgeteilt ist.") + #Die Legende wurde hinzugefügt, damit die Leser nicht vergessen, dass die Werte in der Grafik nicht bedeuten, dass beide Personen genau gleich viel Teilzeit arbeiten. Hier wären Missverständnisse einfach.
+  theme_minimal() + #gleiches Theme wie im Hauptplot
+  theme(
+    axis.title.x = element_blank(),
+  legend.position = c(.95, .95), #Auch die Legende wird gleich platziert
+    legend.justification = c("right", "top"),
+    legend.box.just = "right",
+    legend.margin = margin(5, 5, 5, 5),
+    legend.title = element_text(size=12,),
+    legend.text = element_text(size=10),
+    legend.key.height= unit(0.6, 'cm'),
+    legend.key.width= unit(0.6, 'cm'),
+  plot.caption = element_text(face = "bold")) +
+  scale_color_manual(values = c("green4", "lawngreen"), #Für die Farben verwende Unterschiedliche Grüntöne. Sie sollten zur Obergruppe passen und gleichzeitig klar unterscheidbar sein im Plott
+                     labels = c( "Beide Teilzeit*", "Beide Vollzeit"))+
+  geom_line(size = 1.5, alpha = 0.7 ) # Für die linien verwende ich die gleiche Dicke und gleiches alpha wie in der Übersichtsgrafik.
+Plot_vt
+
+```
+
+<font size="-1"> Beide Erwerbsmodelle nahmen seit 1992 zu. Die Erwerbsmodelle in denen beide Vollzeit arbeiten sind aber immer noch viel häufiger als die Erwerbsmodelle in denen beide Teilzeit arbeiten. Dieses Verhältnis hat sich über die Jahre kaum verändert </font>   
+  
+  
+  
+  
+  
+#### <p1 style= "color:#0bb4ff">Partner Vollzeit, Partnerin weniger</p1>
+
+
+```{r, Graph3, fig.width=10, fig.height=4.5}
+
+#Die Grafik ist gleich aufgebaut wie die vorherige, hat aber keinen subtitle (Hier nicht nötig da ich denke, dass die Legende klar ist)
+Plot_pm_m <- partner_mehr %>% filter(Gruppe == "Paare insgesamt",
+                                Prozentanteil != 0,
+                                Datensatz_überlappend != "2010-2014 alt") %>% 
+  ggplot(aes(x = Jahr, y = Prozentanteil, group = Erwerbsmodell, color = Erwerbsmodell)) +
+  ylim(0,100) +
+  labs( title = "Die Verteilung der Erwerbsmodelle in denen der Partner mehr arbeitet als die Partnerin") +
+    theme_minimal() +
+  theme(
+    axis.title.x = element_blank(),
+   legend.position = c(.95, .95),
+    legend.justification = c("right", "top"),
+    legend.box.just = "right",
+    legend.margin = margin(5, 5, 5, 5),
+   legend.title = element_text(size=12,),
+    legend.text = element_text(size=10),
+    legend.key.height= unit(0.6, 'cm'),
+    legend.key.width= unit(0.6, 'cm')) +
+  scale_color_manual(values = c("mediumblue", "lightslateblue", "cyan2"))+
+  geom_line(size = 1.5, alpha = 0.7 )
+Plot_pm_m
+
+```
+<font size="-1"> In dieser Grafik können wir gut sehen, dass die Partnerinnen über die Jahre hinweg zunehmend mehr Teilzeit Prozente arbeiten. Die Modelle in denen die Partnerinnen nicht arbeiten oder weniger als 50% arbeiten nehmen ab und das Modell in dem die Partnerin über 50% Teilzeit arbeitet nimmt zu.
+Es zeigt sich also eine Veränderung hin zu mehr Arbeitsprozenten der Partnerin.</font>  
+
+
+#### <p1 style= "color:#dc0ab4">Partnerin Vollzeit, Partner weniger</p1>
+
+```{r Graph4, fig.width=10, fig.height=4.5}
+
+#Auch dieser Plot wurde gleich aufgebaut wie die vorherigen
+
+plot_pm_w <- partnerin_mehr %>% filter(Gruppe == "Paare insgesamt",
+                                    Prozentanteil != 0,
+                                    Datensatz_überlappend != "2010-2014 alt") %>% 
+  ggplot(aes(x = Jahr, y = Prozentanteil, group = Erwerbsmodell)) +
+  ylim(0,100) +
+  labs( title = "Die Verteilung der Erwerbsmodelle in denen die Partnerin mehr arbeitet als der Partner") +
+    theme_minimal() +
+  theme(
+    axis.title.x = element_blank(),
+   legend.position = c(.95, .95),
+    legend.justification = c("right", "top"),
+    legend.box.just = "right",
+    legend.margin = margin(5, 5, 5, 5),
+   legend.title = element_text(size=12,),
+    legend.text = element_text(size=10),
+    legend.key.height= unit(0.6, 'cm'),
+    legend.key.width= unit(0.6, 'cm'),) +
+  geom_line(aes(color = Erwerbsmodell), size = 1.5, alpha = 0.7)
+plot_pm_w
+
+```
+<font size="-1"> Die Modelle in denen die Partnerin vollzeit arbeitet und der Partner weniger arbeitet nahmen über die Zeit hinweg minimal zu (ca. 2%). Es haben aber zu wenig Paare dieses Erwerbsmodell, um es feiner zu unterteilen. </font>  
+
+
+
+
+### {-}
+
+***
+
+<P> </p>
+Durch die Aufgliederung wird erkennbar, dass gemeinsame Vollzeit- und Teilzeit- Arbeit über die Jahre hinweg je etwa gleich viel zunahmen.
+In den Modellen in denen der Partner Vollzeit und die Partnerin nicht oder Teilzeit arbeitet gibt es ingsgesammt eine Abnahme. Gleichzeitig zeigt sich bei genauerem Betrachten eine Veränderung hin zu mehr Erwerbsprozenten der Partnerin und weg von wenig oder gar keiner Teilzeit- Arbeit der Partnerin.
+<P> </p>
+Die Hypothese, dass sich die Erwerbsmodelle hin zu mehr Erwerbsprozenten der Partnerin entwickelten wird durch die Daten unterstützt.
+Ob der Partner weniger Vollzeit arbeitet ist hingegen nicht klar ersichtlich.
+Zwar nehmen die Erwerbsmodelle in denen der Partner Vollzeit und die Partnerin Teilzeit arbeiten generell ab (<p1 style= "color:#0bb4ff">erste Grafik</p1>), es ist aber möglich, dass diese Abnahme durch eine Zunahme der Erwerbsmodelle zu erklären ist, in denen Partnerin und Partner beide Vollzeit arbeiten. 
+<br/> <br/>
+
+
+### <font size= "6">  Welchen Einfluss hat das alter des jüngsten Kindes? (Zusatzfrage) </font>
+
+Das Alter eines Kindes in der Familie spielt eine Rolle, wenn es darum geht die Arbeit aufzuteilen.
+Ich nehme an, dass das Alter des Kindes über die Jahre hinweg mehr Einfluss auf die Erwerbsmodelle bekam, da ich davon ausgehe, dass der wiedereinstieg in die Berufswelt nach der Geburt eines Kindes über die Zeit hinweg einfacher wurde. Es sollte also in Erwerbsmodellen in denen die Partnerin arbeitet einen mit der Zeit zunehmenden Unterschied zwischen Familien geben die ein junges und Familien die ein älteres Kind haben (Bezüglich wie viele Prozent der Familien ein Erwerbsmodell haben in dem die Partnerin arbeitet).
+
+In den Untestehenden Grafiken, ist aufgezeigt, wie sich die Erwerbsmodelle in Familien mit einem jungen jüngsten Kind und in Familien mit einem älteren jüngsten Kind über die Jahre hinweg entwickelt haben.
+Die Titel der Grafiken haben die Farbe der Linien in den oberen Grafiken. So kann man die allgemeine Entwicklungen aus der oberen Grafik mit der Entwicklung unter Einbezug des Alters des jüngsten Kindes in den Familien vergleichen.
+
+### Erwerbsmodelle bei Familien mit jungen Kindern und älteren Kindern {.tabset} 
+
+#### <p1 style= "color:#50e991">Beide Teilzeit/Vollzeit</p1>
+```{r Zusatzfrage_a, fig.width=10, fig.height=3.5}
+
+#Für die Zusatzfrage erstelle ich für jedes Erwerbsmodelle einen Plot.
+#Mir ist erst nach dem Aufstellen der Frage aufgefallen, dass die Veränderung in einem einzelnen Erwerbsmodell
+#eigentlich null Informationsgehalt hat. Ich habe mich deshalb dazu entschieden, für alle Modelle einen Plot zu erstellen.
+#Die Idee war hier, ein bischen à la New York Times viele Informationen bereitzustellen, in denen man ein wenig stöbern kann.
+
+#Die Überschriften der Plots haben die Farbe der Linien aus den Oberen Plots. Die Reiter haben die Farben aus den Übersichtsplots.
+#Es sollte dadurch klar werden, um welche Gruppen aus dem Übersichtsplot und welchen Kategorien aus den genaueren Plots es sich handelt.
+
+Plot <- teil_voll %>% filter(Gruppe %in% c("Paare, jüngstes Kind 0-3 Jahre","Paare, jüngstes Kind 18-24 Jahre"),
+Prozentanteil != 0,
+Datensatz_überlappend == "2012-2014 neu",
+Erwerbsmodell == "Beide Teilzeit") %>% 
+  ggplot(aes(x = Jahr, y = Prozentanteil, group = Gruppe)) +
+  geom_line(aes( color = Gruppe),
+            linewidth = 1.1,
+            alpha = 0.5) + #Alpha ist in diesen Plots etwas tiefer, da es viele Überschneidungen gibt.
+  scale_colour_discrete(name = "Alter des jüngsten Kindes in der Familie",
+                      labels = c("0-3 Jahre alt", "18-24 Jahre alt")) +
+    theme_minimal() +
+  labs(title = "Beide Teilzeit") +
+  theme(  axis.title.x = element_blank(),
+          plot.title = element_text(color= c("green4"),
+                                    size = 14,
+                                    face="bold",
+                                    hjust = 0),
+         legend.title = element_text(size = 12),
+        legend.text = element_text(size = 10),
+           legend.position = c(.9, .9),
+    legend.justification = c("right", "top"),
+    legend.box.just = "right",
+    legend.margin = margin(5, 5, 5, 5),
+    legend.key.height= unit(0.6, 'cm'),
+    legend.key.width= unit(0.6, 'cm')) +
+  ylim(0,100)
+
+Plot
+```
+
+<font size="-1">In der ersten Grafik ist ersichtlich, dass der Anteil der Familien in denen Partnerin und Partner Teilzeit arbeiten in Familien mit jungen Kindern höher ist als in Familien mit älteren Kindern.
+Der Einfluss des Alter des Kindes nahm über die Zeit hinweg zu. </font>  
+
+***
+
+```{r Zusatzfrage_a2, fig.width=10, fig.height=3.5 }
+
+#Der Plot ist gleich aufgebaut wie der vorherige
+
+Plot <-   teil_voll %>% filter(Gruppe %in% c("Paare, jüngstes Kind 0-3 Jahre","Paare, jüngstes Kind 18-24 Jahre"),
+Prozentanteil != 0,
+Datensatz_überlappend == "2012-2014 neu",
+Erwerbsmodell == "Beide Vollzeit") %>% 
+  ggplot(aes(x = Jahr, y = Prozentanteil, group = Gruppe)) +
+  geom_line(aes( color = Gruppe),
+            linewidth = 1.1,
+            alpha = 0.5) +
+  scale_colour_discrete(name = "Alter des jüngsten Kindes in der Familie",
+                      labels = c("0-3 Jahre alt", "18-24 Jahre alt")) +
+    theme_minimal() +
+  labs(title = "Beide Vollzeit") +
+  theme(  axis.title.x = element_blank(),
+          plot.title = element_text(color= c("lawngreen"),
+                                    size = 14,
+                                    face="bold",
+                                    hjust = 0),
+         legend.title = element_text(size = 12),
+        legend.text = element_text(size = 10),
+           legend.position = c(.9, .9),
+    legend.justification = c("right", "top"),
+    legend.box.just = "right",
+    legend.margin = margin(5, 5, 5, 5),
+    legend.key.height= unit(0.6, 'cm'),
+    legend.key.width= unit(0.6, 'cm')) +
+  ylim(0,100)
+
+Plot
+
+```
+<font size="-1">In der zweiten Grafik zeigt sich ein umgekehrtes Bild: Der Anteil der Familien in denen Partner und Partnerin Vollzeit arbeiten ist in Familien mit älteren Kindern höher als in Familien mit jüngeren Kindern.
+Der Einfluss des Alters des jüngsten Kindes schwankte über die Zeit hinweg.
+ </font>  
+
+
+
+#### <p1 style= "color:#0bb4ff">Partner Vollzeit, Partnerin weniger</p1>
+
+```{r Zusatzfrage_b, fig.width=10, fig.height=3.5}
+
+#Der Plot ist gleich aufgebaut wie der vorherige
+
+Plot <- partner_mehr %>% filter(Gruppe %in% c("Paare, jüngstes Kind 0-3 Jahre","Paare, jüngstes Kind 18-24 Jahre"),
+Prozentanteil != 0,
+Datensatz_überlappend == "2012-2014 neu",
+Erwerbsmodell == "Partner Vollzeit / Partnerin nicht erwerbstätig") %>% 
+  ggplot(aes(x = Jahr, y = Prozentanteil, group = Gruppe)) +
+  geom_line(aes( color = Gruppe),
+            linewidth = 1.1,
+            alpha = 0.5) +
+  scale_colour_discrete(name = "Alter des jüngsten Kindes in der Familie",
+                      labels = c("0-3 Jahre alt", "18-24 Jahre alt")) +
+    theme_minimal() +
+  labs(title = "Partner arbeitet Vollzeit / Partnerin ist nicht erwerbstätig") +
+  theme(  axis.title.x = element_blank(),
+          plot.title = element_text(color= c("mediumblue"),
+                                    size = 14,
+                                    face="bold",
+                                    hjust = 0),
+         legend.title = element_text(size = 12),
+        legend.text = element_text(size = 10),
+           legend.position = c(.9, .9),
+    legend.justification = c("right", "top"),
+    legend.box.just = "right",
+    legend.margin = margin(5, 5, 5, 5),
+    legend.key.height= unit(0.6, 'cm'),
+    legend.key.width= unit(0.6, 'cm')) +
+  ylim(0,100)
+
+Plot
+```
+<font size="-1">
+In der ersten Grafik ist zu erkennen, dass das Erwerbsmodell bei Familien mit ältern und jüngeren jüngsten Kindern abnahm.
+Die Abnahme ist aber stärker in der Gruppe der Familien mit einem jungen jüngsten Kind.
+Das Modell ist in Familien mit einem jüngeren jüngsten Kind immer noch häufiger als in Familien mit einem älteren jüngsten Kind. Der Einfluss des Alters des jüngsten Kindes nahm also ab.
+ </font>  
+
+***
+
+```{r Zusatzfrage_b2, fig.width=10, fig.height=3.5 }
+
+
+#Der Plot ist gleich aufgebaut wie der vorherige
+
+Plot <-   partner_mehr %>% filter(Gruppe %in% c("Paare, jüngstes Kind 0-3 Jahre","Paare, jüngstes Kind 18-24 Jahre"),
+Prozentanteil != 0,
+Datensatz_überlappend == "2012-2014 neu",
+Erwerbsmodell == "Partner Vollzeit / Partnerin Teilzeit 1-49%") %>% 
+  ggplot(aes(x = Jahr, y = Prozentanteil, group = Gruppe)) +
+  geom_line(aes( color = Gruppe),
+            linewidth = 1.1,
+            alpha = 0.5) +
+  scale_colour_discrete(name = "Alter des jüngsten Kindes in der Familie",
+                      labels = c("0-3 Jahre alt", "18-24 Jahre alt")) +
+    theme_minimal() +
+  labs(title = "Partner arbeitet Vollzeit / Partnerin arbeitet Teilzeit 1-49%") +
+  theme(  axis.title.x = element_blank(),
+          plot.title = element_text(color= c("lightslateblue"),
+                                    size = 14,
+                                    face="bold",
+                                    hjust = 0),
+         legend.title = element_text(size = 12),
+        legend.text = element_text(size = 10),
+           legend.position = c(.9, .9),
+    legend.justification = c("right", "top"),
+    legend.box.just = "right",
+    legend.margin = margin(5, 5, 5, 5),
+    legend.key.height= unit(0.6, 'cm'),
+    legend.key.width= unit(0.6, 'cm')) +
+  ylim(0,100)
+
+Plot
+```
+
+<font size="-1">
+In der zweiten Grafik ist ersichlich, dass der Einfluss des Alters des jüngsten Kindes auf dieses Erwerbsmodell über die Jahre hinweg etwa gleich blieb.
+Von den Familien die ein älteres jüngstes Kind haben haben etwa gleiche viele dieses Erwerbsmodell wie in den Familien mit einem jüngern Kind.
+
+ </font>  
+
+***
+
+```{r Zusatzfrage_b3, fig.width=10, fig.height=3.5 }
+
+
+#Der Plot ist gleich aufgebaut wie der vorherige
+
+Plot <-   partner_mehr %>% filter(Gruppe %in% c("Paare, jüngstes Kind 0-3 Jahre","Paare, jüngstes Kind 18-24 Jahre"),
+Prozentanteil != 0,
+Datensatz_überlappend == "2012-2014 neu",
+Erwerbsmodell == "Partner Vollzeit / Partnerin Teilzeit 50-89%") %>% 
+  ggplot(aes(x = Jahr, y = Prozentanteil, group = Gruppe)) +
+  geom_line(aes( color = Gruppe),
+            linewidth = 1.1,
+            alpha = 0.5) +
+  scale_colour_discrete(name = "Alter des jüngsten Kindes in der Familie",
+                      labels = c("0-3 Jahre alt", "18-24 Jahre alt")) +
+    theme_minimal() +
+  labs(title = "Partner arbeitet Vollzeit / Partnerin arbeitet Teilzeit 50-89%") +
+  theme(  axis.title.x = element_blank(),
+          plot.title = element_text(color= c("cyan2"),
+                                    size = 14,
+                                    face="bold",
+                                    hjust = 0),
+         legend.title = element_text(size = 12),
+        legend.text = element_text(size = 10),
+           legend.position = c(.9, .9),
+    legend.justification = c("right", "top"),
+    legend.box.just = "right",
+    legend.margin = margin(5, 5, 5, 5),
+    legend.key.height= unit(0.6, 'cm'),
+    legend.key.width= unit(0.6, 'cm')) +
+  ylim(0,100)
+
+Plot
+```
+
+
+<font size="-1">
+In der dritten Grafik zeigt sich das umgekehrte Bild der ersten Grafik. Das Erwerbsmodell nahm über die Jahre in beiden Gruppen generell zu.
+Der Anstieg ist für Familien mit jungem jüngstem Kind und älterem jüngsten Kind in etwa gleich.
+Im Gegensatz zu der ersten Grafik ist das Modell aber häufiger in Familien, die ein älteres jüngstes Kind haben.
+ </font>  
+
+ 
+#### <p1 style= "color:#dc0ab4">Partnerin Vollzeit, Partner weniger</p1>
+
+```{r Zusatzfrage3, fig.width=10, fig.height=3.5}
+
+
+#Der Plot ist gleich aufgebaut wie der vorherige
+
+Plot <- em_analysis_overview_long %>% filter(Gruppe %in% c("Paare, jüngstes Kind 0-3 Jahre","Paare, jüngstes Kind 18-24 Jahre"),
+Prozentanteil != 0,
+Datensatz_überlappend == "2012-2014 neu",
+Erwerbsmodell == "Partnerin Vollzeit, Partner nicht oder Teilzeit") %>% 
+  ggplot(aes(x = Jahr, y = Prozentanteil, group = Gruppe)) +
+  geom_line(aes(color = Gruppe),
+            linewidth = 1.1,
+            alpha = 0.5) +
+  scale_colour_discrete(name = "Alter des jüngsten Kindes in der Familie",
+                      labels = c("0-3 Jahre alt", "18-24 Jahre alt")) +
+    theme_minimal() +
+  labs(title = "Partnerin arbeitet Vollzeit, Partner arbeitet nicht oder Teilzeit") +
+  theme(  axis.title.x = element_blank(),
+          plot.title = element_text(color= c("#F8766D"),
+                                    size = 14,
+                                    face="bold",
+                                    hjust = 0),
+         legend.title = element_text(size = 12),
+        legend.text = element_text(size = 10),
+           legend.position = c(.9, .9),
+    legend.justification = c("right", "top"),
+    legend.box.just = "right",
+    legend.margin = margin(5, 5, 5, 5),
+    legend.key.height= unit(0.6, 'cm'),
+    legend.key.width= unit(0.6, 'cm')) +
+  ylim(0,100)
+
+Plot
+```
+
+<font size="-1">
+Der Einfluss des Alters des jüngsten Kindes ist in dieser Grafik schwer zu interpretieren, das Erwerbsmodell in Familien mit Kindern praktisch nicht vertreten ist. Es kann deshalb keine Aussage über die Verännderung gemacht werden. 
+ </font>  
+
+
+
+### {-}
+
+***
+
+Meine Hypothese muss abgelehnt werden, da die Daten je nach Modell in dem die Partnerin arbeitet nicht einheitlich in eine Richtung gehen.
+
+Es ist interessant zu sehen, dass Erwerbsmodelle in denen die Partnerin mehr Arbeitet (Beide Vollzeit, Partnerin 50-89%) in Familien mit älterem jüngsten Kind häufiger vertreten sind als in Familien mit jungem jüngsten Kind.
+Erwerbsmodelle in denen die Partnerin gar nicht arbeitet sind bei Familien mit jüngerem jüngsten Kind jedoch häufiger vertreten als bei Familien mit älterem jüngsten Kind.
+Das Alter des jüngsten Kindes hat also einen Einfluss auf die Art der Erwerbsmodelle. 
+<br/> <br/>
+
+
+### <font size= "6"> <span style="color: red;"> __Der Untergang des modernen Mannes__ </span> </font>
+
+Der linke Sumpf versucht schon seit Jahren das klassische Rollenbild von Mann und Frau zu zerstören.
+Das Resultat ist __katastrophal__. Kinder wachsen __ohne zuverlässige Erziehung__ auf und Männer sorgen nicht mehr für die Familie.
+Die Folgen sind zerbrochene Familien und eine Epidemie von unterwürfigen Partnern.
+Das Bundesamt für Statistik analysiert im Zuge der Arbeitsnehmenden Erhebung regelmässig, wie die Verteilung der Arbeit zwischen Mann und Frau in den schweizer Familien aussieht. Wenn man sich diese Zahlen etwas genauer anschaut wird klar, warum die linke Indoktrinierung des gleichstellungs Mythos bereits jetzt katastrophale Folgen für unsere Familien hat.
+Anhand der Daten des Bundesamtes zeigen wir an zwei Grafiken das Ausmass dieser Entwicklung. 
+
+
+
+```{r Schlechte Variante1,fig.show="hold", out.width="50%"}
+
+#Die Hypothese, die ich aufgestellt habe, kann nur mit mehreren Grafiken richtig beantowrtet werden. Einzelne Veränderungen zeigen ein Verzerrtes Bild. 
+#Für die schlechte Antwort beschränke ich mich deshalb auf zwei Grafiken.
+#Welche Daten genau untersucht werden gebe ich im Titel jeweils nicht an. 
+
+em_analysis_overview_long %>% 
+  filter(Erwerbsmodell %in% "Partner Vollzeit / Partnerin nicht erwerbstätig",
+         Gruppe %in% "Paare ohne Kinder im Haushalt") %>% # In dieser Gruppe zeigt sich ein starker Abfall der Familien in denen der Partner Vollzeit und die Partnerin nicht arbeitet. Sie eignet sich deshalb perfekt für eine manipulative Grafik, vor allem, wenn nicht klar angegeben wird, um welche Gruppe es sich handelt.
+ggplot() +
+geom_step(aes(x = Jahr, y = Prozentanteil, group = `Erwerbsmodell`, 
+              size = 10,
+              alpha = 1))  + #geom step, damit die Jahreszahlen nicht richtig zugeordnet werden können (Vor allem mit fehlendem Grid)
+   labs(title = "Der Niedergang des Versorgers") + #Der Titel sollte auf keinen Fall verwertbare Informationen enthalten..
+  theme_classic() + # Grid lines werden mit diesem theme weggelassen, damit das interpretieren etwas schwieriger wird und Leser*innen nicht auf die verzerrten x und y Achsen aufmerksam werden.
+    theme(axis.text.x = element_text(angle=45),
+          axis.title.y = element_blank(),
+          legend.position = "none") +
+  geom_segment(aes(x ="2010" , y = 7.2, xend = "2021", yend = 4.5 ), #Warum die Daten Interpretieren, wenn ein Pfeil den Inhalt besser rüberbringt
+               size = 2,
+               color = "darkred", #Die rote Farbe sollte die Aufmerksamkeit des Lesers binden und von der Y-Achse ablenken. 
+               arrow = arrow(length = unit(0.5, "cm")))
+
+
+
+em_analysis_overview_long %>% filter(Gruppe %in% "Paare insgesamt",
+                                     Erwerbsmodell %in% "Partner nicht oder Teilzeit (1-89%) erwerbstätig / Partnerin Vollzeit", #Der Anstieg der Partnerschaften, in denen die Partnerin Vollzeit und der Partner weniger arbeitet ist zwar gering, mit verkürzter y Achse wird er aber schnell massiv. Ein relativer Anstieg von fast 200%! 
+                                     Prozentanteil != 0,
+                                     Datensatz_überlappend == "2012-2014 neu") %>% 
+  ggplot(aes(x = Jahr, y = Prozentanteil, group = `Erwerbsmodell`)) +
+  geom_step(aes(x = Jahr, y = Prozentanteil, group = `Erwerbsmodell`),
+            size = 10,
+            alpha = 0.5) +
+  ylim(1.5,4) + #Anpassen der Y Achse..
+  labs(title = "Die Frau übernimmt!") + #Aus dem Titel sollte die Message die rübergebracht werden will unterstrichen werden. Auf keinen Fall sollte er nützliche Informationen enthalten.
+   theme_classic() +
+  theme(axis.text.x = element_text(angle=45), # Nöglichst viele Jahreszahlen aneinander quetschen.
+        axis.title.y = element_blank(), # die x-Achse kann bleiben, da sie keine wertvollen Informationen enthält.
+        legend.position = "none") +
+  geom_segment(aes(x ="1992" , y = 1.6, xend = "2021", yend = 4),
+               size = 2,
+               color = "darkred",
+               arrow = arrow(length = unit(0.5, "cm")))
+
+                       
+```
+
+
+Grafik 1 zeigt den rasanten Anstieg der Familien, in denen der Mann nicht mehr die Hosen anhat. Das ist in einigen Familienmodellen nun also schon die Norm. Der rote Pfeil zeigt die Veränderung klar und deutlich: Immer öfters arbeitet der Mann nicht mehr mehr als die Frau. Um sich das etwas deutlicher zu machen: Es handelt sich hier um einen Fall von fast <p1 style= "color:red; font-size = 6"> __70%__ </p1> seit dem Jahr 1992!!
+
+Ganz im gegenteil dazu übernimmt die Frau zunehmends die Rolle des Mannes und wird ihn in einigen Jahren gänzlich von seiner Rolle verdrängen (siehe roten Pfeil!). In der zweiten Grafik sehen wir deshalb einen umgekehrten Trend: Der Anstieg der Frauen, die in den Familien mehr arbeiten als der Mann hat um ca. <p1 style= "color:red; font-size: 6"> __200%__ </p1> zugenommen.
+Diese Zahl muss man sich erst einmal auf der Zunge vergehen lassen.
+
+__Um diesen katastrophalen Trend aufzuhalten und die klassische Familie zu retten bitten wir deshalb zur Unterzeichnung unserer Petition zur "Rettung der schweizer Moral" .__
+
+<br/> <br/>
+<br/> <br/>
+<br/> <br/>

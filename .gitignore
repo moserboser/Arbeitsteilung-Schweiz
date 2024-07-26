@@ -21,6 +21,7 @@
 # RStudio files
 .Rproj.user/
 
+Project_Erwerbsmodelle.Rproj
 # produced vignettes
 vignettes/*.html
 vignettes/*.pdf

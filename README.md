@@ -1,7 +1,7 @@
 # Arbeitsteilung-Schweiz
 
 ## Wichtig
-Das Projekt enthält zwei Teile. Im ersten Teil wurde die Visualisierung der Daten nach State of The Art durchgeführt. Im zweiten Teil wurde die Visualisierung so schlecht wie möglich durchgeführt, um zu demonstrieren wie es nicht gemacht werden sollte. Als Inspiration für den zweiten Teil diente eine Wahlkampf Broschüre der Schweizer Volks Partei.  
+Das Projekt enthält zwei Teile. Im ersten Teil wurde die Visualisierung der Daten nach State of The Art durchgeführt. Im zweiten Teil wurde die Visualisierung so schlecht wie möglich durchgeführt, um zu demonstrieren wie es nicht gemacht werden sollte.
 
 ## Beschreibung
 R-Markdown Code und Daten für ein Semesterprojekt zur Visualisierung der Arbeitsteilung in Schweizer Familien.

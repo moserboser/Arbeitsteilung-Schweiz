@@ -48,165 +48,35 @@ em_n <- map_dfr(sheets_to_load, function(sheet) {
         mutate(Jahr = as.numeric(sheet)) # add year
     })
 
+# rename columns
+colnames(em_n) %>% dput()
+em_n <- em_n %>% rename(group = "...1", 
+                        male_partner_full_female_not = "Partner Vollzeit / Partnerin nicht erwerbstätig", 
+                        )
+
 ``` 
 
 
+```{r reading in old datasets}
+## Nun wird der alte Datensatz geladen (Gleiche methode wie bei dem neuen Datensatz).
+file_old <- "../data/raw/income_model_old.xls"
+Jahre_alt <- c("1992", "1995", "1997", "2000", "2004", "2007", "2010", "2011", "2012", "2013", "2014")
 
-#Und die Variable, die das Subset der Untersuchten Personen angibt (zB. Paare Gesammt, Paare mit jüngstem Kind 0-3 Jahre, etc.) zu Gruppe umbenennen.
+em_a <- map_dfr(Jahre_alt, function(year) {
+  df <- read_excel(file_old, sheet = year, col_names = TRUE, range = cell_rows(c(5, 10, 12:18)), col_types = "text") %>%
+    slice(c(5, 7:13))
+  colnames(df)[1] <- "group"
+  if (year %in% c("2013", "2014")) {
+    colnames(df)[7] <- "Partner nicht oder Teilzeit (1-89%) / Partnerin Vollzeit erwerbstätig" # make sure the names match accross all files for binding
+  }
+  df %>% mutate(Jahr = year)
+})
 
-colnames(em_n)[colnames(em_n) == '...1'] <- 'Gruppe'
-colnames(em_n)
-
-#variablen zu Factor und numeric konvertieren 
-as.factor(em_n$`Partner Vollzeit / Partnerin nicht erwerbstätig`)
-class(em_n$`Partner Vollzeit / Partnerin nicht erwerbstätig`)
-em_n$`Partner Vollzeit / Partnerin nicht erwerbstätig` <- as.numeric(em_n$`Partner Vollzeit / Partnerin nicht erwerbstätig`)
-
-
-colnames(em_n)
-
-
-
-##Nun wird der alte Datensatz geladen (Gleiche methode wie bei dem neuen Datensatz).
-
-
-em_a_1992 <- read_excel("data/raw/income_model_old.xls", 
-                        sheet = "1992", 
-                        col_names = TRUE,
-                        range = cell_rows(c(5,10,12:18)) )
-
-em_a_1995 <- read_excel("data/raw/income_model_old.xls", 
-                        sheet = "1995", 
-                        col_names = TRUE,
-                        range = cell_rows(c(5,10,12:18)) )
-
-em_a_1997 <- read_excel("data/raw/income_model_old.xls", 
-                        sheet = "1997", 
-                        col_names = TRUE,
-                        range = cell_rows(c(5,10,12:18)) )
-
-em_a_2000 <- read_excel("data/raw/income_model_old.xls", 
-                        sheet = "2000", 
-                        col_names = TRUE,
-                        range = cell_rows(c(5,10,12:18)) )
-
-em_a_2004 <- read_excel("data/raw/income_model_old.xls", 
-                        sheet = "2004", 
-                        col_names = TRUE,
-                        range = cell_rows(c(5,10,12:18)) )
-
-em_a_2007 <- read_excel("data/raw/income_model_old.xls", 
-                        sheet = "2007", 
-                        col_names = TRUE,
-                        range = cell_rows(c(5,10,12:18)) )
-
-em_a_2010 <- read_excel("data/raw/income_model_old.xls", 
-                        sheet = "2010", 
-                        col_names = TRUE,
-                        range = cell_rows(c(5,10,12:18)) )
-
-em_a_2011 <- read_excel("data/raw/income_model_old.xls", 
-                        sheet = "2011", 
-                        col_names = TRUE,
-                        range = cell_rows(c(5,10,12:18)) )
-
-em_a_2012 <- read_excel("data/raw/income_model_old.xls", 
-                        sheet = "2012", 
-                        col_names = TRUE,
-                        range = cell_rows(c(5,10,12:18)) )
-
-em_a_2013 <- read_excel("data/raw/income_model_old.xls", 
-                        sheet = "2013", 
-                        col_names = TRUE,
-                        range = cell_rows(c(5,10,12:18)) )
-
-em_a_2014 <- read_excel("data/raw/income_model_old.xls", 
-                        sheet = "2014", 
-                        col_names = TRUE,
-                        range = cell_rows(c(5,10,12:18)) )
-
-#Da die Files auch nach dem Einlesen noch messy sind, werden sie mit slice in ordnung gebracht.
-
-em_a_1992 <- em_a_1992 %>% slice(c(5, 7:13)) 
-
-em_a_1995 <- em_a_1995 %>% slice(c(5, 7:13))
-
-em_a_1997 <- em_a_1997 %>% slice(c(5, 7:13))
-
-em_a_2000 <- em_a_2000 %>% slice(c(5, 7:13))
-
-em_a_2004 <- em_a_2004 %>% slice(c(5, 7:13))
-
-em_a_2007 <- em_a_2007 %>% slice(c(5, 7:13))
-
-em_a_2010 <- em_a_2010 %>% slice(c(5, 7:13))
-
-em_a_2011 <- em_a_2011 %>% slice(c(5, 7:13))
-
-em_a_2012 <- em_a_2012 %>% slice(c(5, 7:13))
-
-em_a_2013 <- em_a_2013 %>% slice(c(5, 7:13))
-
-em_a_2014 <- em_a_2014 %>% slice(c(5, 7:13))
-
-
-
-## Umbenennden wie im neuen Datensatz alle Gruppenvariablen umbenennen.
-#Next time einfacher mit mutate() ;)
-
-
-colnames(em_a_1992)[1] = "Gruppe"
-colnames(em_a_1995)[1] = "Gruppe"
-colnames(em_a_1997)[1] = "Gruppe"
-colnames(em_a_2000)[1] = "Gruppe"
-colnames(em_a_2004)[1] = "Gruppe"
-colnames(em_a_2007)[1] = "Gruppe"
-colnames(em_a_2010)[1] = "Gruppe"
-colnames(em_a_2011)[1] = "Gruppe"
-colnames(em_a_2012)[1] = "Gruppe"
-colnames(em_a_2013)[1] = "Gruppe"
-colnames(em_a_2014)[1] = "Gruppe"
-
-
-##Namen von Variablen mit gleichem Inhalt aber anderem Namen angleichen, damit das Zusammenfügen mit rbind möglich wird.
-
-colnames(em_a_2013)[7] = "Partner nicht oder Teilzeit (1-89%) / Partnerin Vollzeit erwerbstätig"
-colnames(em_a_2014)[7] = "Partner nicht oder Teilzeit (1-89%) / Partnerin Vollzeit erwerbstätig"
-
-##alte Datensätze zusammenfügen.
-
-em_a_all_combined <- rbind.fill(em_a_1992,
-           em_a_1995,
-           em_a_1997,
-           em_a_2000,
-           em_a_2004,
-           em_a_2007,
-           em_a_2010,
-           em_a_2011,
-           em_a_2012,
-           em_a_2013,
-           em_a_2014)
-
-
-
-##Jahreszahlen hinzufügen (jetzt etwas besser als vorher, direkt mit einem Vektor :D)
-
-Jahre_alt <- c("1992", 
-               "1995",
-               "1997",
-               "2000",
-               "2004",
-               "2007",
-               "2010",
-               "2011",
-               "2012",
-               "2013",
-               "2014")
-
-em_a_all_combined$Jahr <- c(rep(Jahre_alt, each = 8)) 
-
+# Konvertierung zu numerisch für alle Spalten außer Gruppe und Jahr
 glimpse(em_a_all_combined)
+``` 
 
+```{r }
 ## Überblick verschaffen.
 
 glimpse(em_n)

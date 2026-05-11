@@ -10,7 +10,7 @@ output:
 
 ```{r setup, include=TRUE}
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, error = FALSE, warning = FALSE)
-knitr::opts_knit$set(root.dir = '/Users/lino/Google Drive/Uni/PSYCHOLOGIE/proseminare/u_data/Meine Darstellung/Project_Erwerbsmodelle')
+knitr::opts_knit$set(root.dir = '..')
 ```
 
 
@@ -20,110 +20,37 @@ library(plyr)
 library(dplyr)
 library(readxl)
 library(tidyr)
+library(purrr)
 library(ggthemes)
 library(extrafont)
+``` 
 
-#First Step: Daten aus dem Excel- Files des Bundesamtes für Statistik laden.
-#Als erstes lese ich die neuen Datensätze ein.
-#Da die Excel-Files ziemlich messy sind, gebe ich die einzulesenden Columns mit range an.
+```{r reading in newer datasets:}
+# "new" Excel-Dateien rekursiv finden, aber Test-Dateien ausschließen
+# (Hier vereinfacht auf die Hauptdatei, da die Pfadlogik im Rmd-Kontext stabil sein muss)
+file_new <- "data/raw/income_model_new.xlsx"
+  
+# Zieljahre definieren (2015 fehlt in den Quelldaten)
+target_years <- c(2010:2014, 2016:2021)
 
-em_n_2021 <- read_excel("Tables/Erwerbsmodell_bei_Paaren.xlsx", 
-                                       sheet = "2021", 
-                        col_names = TRUE,
-                        skip = 2,
-                        range = "A3:N33")
-                        
-em_n_2020 <- read_excel("Tables/Erwerbsmodell_bei_Paaren.xlsx", 
-                        sheet = "2020", 
-                        col_names = TRUE,
-                        skip = 2,
-                        range = "A3:N33")
+# specify all sheets to read 
+sheets <- excel_sheets(file_new)
+sheets_to_load <- sheets[sheets %in% as.character(target_years)] 
+   
+# reading all new files and combining them 
+em_n <- map_dfr(sheets_to_load, function(sheet) {
+      read_excel(file_new, 
+                 sheet = sheet, 
+                 col_names = TRUE, 
+                 skip = 2, # the file is messy but luckily for us in the same way accross all the files
+                 range = "A3:N33", 
+                 col_types = "text") %>% # make sure all variables are read as text
+        mutate(Jahr = as.numeric(sheet)) # add year
+    })
 
-em_n_2019 <- read_excel("Tables/Erwerbsmodell_bei_Paaren.xlsx", 
-                        sheet = "2019", 
-                        col_names = TRUE,
-                        skip = 2,
-                        range = "A3:N33")
+``` 
 
-em_n_2018 <- read_excel("Tables/Erwerbsmodell_bei_Paaren.xlsx", 
-                        sheet = "2018", 
-                        col_names = TRUE,
-                        skip = 2,
-                        range = "A3:N33")
 
-em_n_2017 <- read_excel("Tables/Erwerbsmodell_bei_Paaren.xlsx", 
-                        sheet = "2017", 
-                        col_names = TRUE,
-                        skip = 2,
-                        range = "A3:N33")
-
-em_n_2016 <- read_excel("Tables/Erwerbsmodell_bei_Paaren.xlsx", 
-                        sheet = "2016", 
-                        col_names = TRUE,
-                        skip = 2,
-                        range = "A3:N33")
-
-# Das Jahr 2015 Ist in der Excel-Datei nicht enthalten.
-
-em_n_2014 <- read_excel("Tables/Erwerbsmodell_bei_Paaren.xlsx", 
-                        sheet = "2014", 
-                        col_names = TRUE,
-                        skip = 2,
-                        range = "A3:N33")
-
-em_n_2013 <- read_excel("Tables/Erwerbsmodell_bei_Paaren.xlsx", 
-                        sheet = "2013", 
-                        col_names = TRUE,
-                        skip = 2,
-                        range = "A3:N33")
-
-em_n_2012 <- read_excel("Tables/Erwerbsmodell_bei_Paaren.xlsx", 
-                        sheet = "2012", 
-                        col_names = TRUE,
-                        skip = 2,
-                        range = "A3:N33")
-
-em_n_2011 <- read_excel("Tables/Erwerbsmodell_bei_Paaren.xlsx", 
-                        sheet = "2011", 
-                        col_names = TRUE,
-                        skip = 2,
-                        range = "A3:N33")
-
-em_n_2010 <- read_excel("Tables/Erwerbsmodell_bei_Paaren.xlsx", 
-                        sheet = "2010", 
-                        col_names = TRUE,
-                        skip = 2,
-                        range = "A3:N33")
-
-# Jahreszahlen zu den jeweiligen Datensätzen hinzufügen (each year 30 observations) etwas umständlich, nächstes mal direkt über den zusammengefügten Datensatz.
-
-em_n_2021 <- mutate(em_n_2021, Jahr = 2021 )
-em_n_2020 <- mutate(em_n_2020, Jahr = 2020 )
-em_n_2019 <- mutate(em_n_2019, Jahr = 2019 )
-em_n_2018 <- mutate(em_n_2018, Jahr = 2018 )
-em_n_2017 <- mutate(em_n_2017, Jahr = 2017 )
-em_n_2016 <- mutate(em_n_2016, Jahr = 2016 )
-em_n_2014 <- mutate(em_n_2014, Jahr = 2014 )
-em_n_2013 <- mutate(em_n_2013, Jahr = 2013 )
-em_n_2012 <- mutate(em_n_2012, Jahr = 2012 )
-em_n_2011 <- mutate(em_n_2011, Jahr = 2011 )
-em_n_2010 <- mutate(em_n_2010, Jahr = 2010 )
-
-#Datensätze zusammenfügen
-
-em_n <- rbind(em_n_2010,
-              em_n_2011,
-              em_n_2012,
-              em_n_2013,
-              em_n_2014,
-              em_n_2016,
-              em_n_2017,
-              em_n_2017,
-              em_n_2018,
-              em_n_2018,
-              em_n_2019,
-              em_n_2020,
-              em_n_2021 )
 
 #Und die Variable, die das Subset der Untersuchten Personen angibt (zB. Paare Gesammt, Paare mit jüngstem Kind 0-3 Jahre, etc.) zu Gruppe umbenennen.
 
@@ -143,57 +70,57 @@ colnames(em_n)
 ##Nun wird der alte Datensatz geladen (Gleiche methode wie bei dem neuen Datensatz).
 
 
-em_a_1992 <- read_excel("Tables/Erwerbsmodelle Alt.xls", 
+em_a_1992 <- read_excel("data/raw/income_model_old.xls", 
                         sheet = "1992", 
                         col_names = TRUE,
                         range = cell_rows(c(5,10,12:18)) )
 
-em_a_1995 <- read_excel("Tables/Erwerbsmodelle Alt.xls", 
+em_a_1995 <- read_excel("data/raw/income_model_old.xls", 
                         sheet = "1995", 
                         col_names = TRUE,
                         range = cell_rows(c(5,10,12:18)) )
 
-em_a_1997 <- read_excel("Tables/Erwerbsmodelle Alt.xls", 
+em_a_1997 <- read_excel("data/raw/income_model_old.xls", 
                         sheet = "1997", 
                         col_names = TRUE,
                         range = cell_rows(c(5,10,12:18)) )
 
-em_a_2000 <- read_excel("Tables/Erwerbsmodelle Alt.xls", 
+em_a_2000 <- read_excel("data/raw/income_model_old.xls", 
                         sheet = "2000", 
                         col_names = TRUE,
                         range = cell_rows(c(5,10,12:18)) )
 
-em_a_2004 <- read_excel("Tables/Erwerbsmodelle Alt.xls", 
+em_a_2004 <- read_excel("data/raw/income_model_old.xls", 
                         sheet = "2004", 
                         col_names = TRUE,
                         range = cell_rows(c(5,10,12:18)) )
 
-em_a_2007 <- read_excel("Tables/Erwerbsmodelle Alt.xls", 
+em_a_2007 <- read_excel("data/raw/income_model_old.xls", 
                         sheet = "2007", 
                         col_names = TRUE,
                         range = cell_rows(c(5,10,12:18)) )
 
-em_a_2010 <- read_excel("Tables/Erwerbsmodelle Alt.xls", 
+em_a_2010 <- read_excel("data/raw/income_model_old.xls", 
                         sheet = "2010", 
                         col_names = TRUE,
                         range = cell_rows(c(5,10,12:18)) )
 
-em_a_2011 <- read_excel("Tables/Erwerbsmodelle Alt.xls", 
+em_a_2011 <- read_excel("data/raw/income_model_old.xls", 
                         sheet = "2011", 
                         col_names = TRUE,
                         range = cell_rows(c(5,10,12:18)) )
 
-em_a_2012 <- read_excel("Tables/Erwerbsmodelle Alt.xls", 
+em_a_2012 <- read_excel("data/raw/income_model_old.xls", 
                         sheet = "2012", 
                         col_names = TRUE,
                         range = cell_rows(c(5,10,12:18)) )
 
-em_a_2013 <- read_excel("Tables/Erwerbsmodelle Alt.xls", 
+em_a_2013 <- read_excel("data/raw/income_model_old.xls", 
                         sheet = "2013", 
                         col_names = TRUE,
                         range = cell_rows(c(5,10,12:18)) )
 
-em_a_2014 <- read_excel("Tables/Erwerbsmodelle Alt.xls", 
+em_a_2014 <- read_excel("data/raw/income_model_old.xls", 
                         sheet = "2014", 
                         col_names = TRUE,
                         range = cell_rows(c(5,10,12:18)) )
@@ -261,7 +188,6 @@ em_a_all_combined <- rbind.fill(em_a_1992,
            em_a_2014)
 
 
-glimpse(em_a_all_combined)
 
 ##Jahreszahlen hinzufügen (jetzt etwas besser als vorher, direkt mit einem Vektor :D)
 

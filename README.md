@@ -1,5 +1,7 @@
 # Arbeitsteilung-Schweiz
 
+**Der Code wird derzeit überarbeitet und die Skripte sind dh. nicht funktional** 
+
 R-Markdown Code und Daten für ein Semesterprojekt zur Visualisierung der Arbeitsteilung in Schweizer Familien
 
 Im Ordner `code/` befinden sich zwei Files mit dem R-Markdown code sowie zwei bereits geknittete HTML files.
